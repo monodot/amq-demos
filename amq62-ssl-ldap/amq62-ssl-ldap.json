@@ -373,7 +373,7 @@
                                 "volumeMounts": [
                                     {
                                         "name": "broker-secret-volume",
-                                        "mountPath": "${AMQ_KEYSTORE_TRUSTSTORE_DIR}",
+                                        "mountPath": "/etc/amq-secret-volume",
                                         "readOnly": true
                                     }
                                 ],

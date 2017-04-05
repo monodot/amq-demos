@@ -1,16 +1,39 @@
-# ldap-with-certs
+# amq62-ssl-ldap
 
 Demonstrates a few security customisations of the [JBoss A-MQ for OpenShift][1] image:
 
-- Configures LDAP authentication for the broker in `activemq.xml`
-- Enables a 'remote' JMX port on 1099, to allow local administration via the command line `activemq-admin` tool
-- Configures LDAP authentication for JMX 
-- Configures certificate-based authentication between brokers
+- Configure LDAP authentication for the broker in `activemq.xml`
+- Enforce 2-way SSL for client-broker communication
+- Enable a 'remote' JMX port on 1099, to allow local administration via the command line `activemq-admin` tool
+- Configure LDAP authentication for JMX 
+- Configure certificate-based authentication for brokers using `org.apache.activemq.jaas.TextFileCertificateLoginModule`
+- Enable only the SSL variants of each protocol
 
 You will need:
 
 - The `ldap` command line tools on your system (e.g. `ldapadd`, `ldapmodify`, etc.)
+- A demo LDAP server
 - Docker
+
+## Preparation
+
+Create self-signed certificates for 2-way SSL. The broker truststore `broker.ts` must contain the client certificate, and the client truststore `client.ts` must contain the broker certificate:
+
+    $ keytool -genkey -alias broker -keypass changeit -keyalg RSA -keystore broker.ks -dname "CN=broker,O=Wuthering Heights,L=Gimmerton,C=GB" -storepass changeit
+    $ keytool -genkey -alias client -keypass changeit -keyalg RSA -keystore client.ks -dname "CN=client,O=Wuthering Heights,L=Gimmerton,C=GB" -storepass changeit
+
+    $ keytool -export -alias broker -keystore broker.ks -file broker_cert -storepass changeit
+    $ keytool -import -alias broker -keystore client.ts -file broker_cert -storepass changeit -noprompt
+
+    $ keytool -export -alias client -keystore client.ks -file client_cert -storepass changeit
+    $ keytool -import -alias client -keystore broker.ts -file client_cert -storepass changeit -noprompt
+
+Add the broker keystore and truststore into a secret:
+
+    $ oc secrets new amq-app-secret broker.ks broker.ts
+    $ oc create sa amq-service-account
+    $ oc policy add-role-to-user view -z amq-service-account
+    $ oc secrets add sa/amq-service-account secret/amq-app-secret
 
 ## Preparation
 
