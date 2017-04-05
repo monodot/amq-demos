@@ -436,7 +436,7 @@
                                     },
                                     {
                                         "name": "AMQ_MESH_SERVICE_NAME",
-                                        "value": "${APPLICATION_NAME}-amq-tcp"
+                                        "value": "${APPLICATION_NAME}-amq-tcp-ssl"
                                     },
                                     {
                                         "name": "AMQ_MESH_SERVICE_NAMESPACE",
