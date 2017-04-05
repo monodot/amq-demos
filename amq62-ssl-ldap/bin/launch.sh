@@ -4,9 +4,8 @@
 . $AMQ_HOME/bin/partitionPV.sh
 . /usr/local/dynamic-resources/dynamic_resources.sh
 
-ACTIVEMQ_OPTS="-javaagent:${AMQ_HOME}/jolokia.jar=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false,user=user,password=password,authMode=basic"
+ACTIVEMQ_OPTS="-javaagent:${AMQ_HOME}/jolokia.jar=port=8778,protocol=https,caCert=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt,clientPrincipal=cn=system:master-proxy,useSslClientAuthentication=true,extraClientCheck=true,host=0.0.0.0,discoveryEnabled=false"
 ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS} -XX:+DisableAttachMechanism -Dorg.apache.activemq.audit=true -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.login.config=LdapJmxConfiguration -Djava.security.auth.login.config=${AMQ_HOME}/conf/login.config -Dcom.sun.management.jmxremote.access.file=${AMQ_HOME}/conf/jmx.access"
-ACTIVEMQ_OPTS="${ACTIVEMQ_OPTS} -javaagent:${AMQ_HOME}/lib/byteman.jar=script:${AMQ_HOME}/conf/rules.btm,boot:${AMQ_HOME}/lib/byteman.jar -Dorg.jboss.byteman.verbose=true -Dorg.apache.activemq.audit=true"
 
 MAX_HEAP=`get_heap_size`
 if [ -n "$MAX_HEAP" ]; then
