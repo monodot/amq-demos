@@ -48,7 +48,7 @@ function configureMesh() {
   discoveryType="${AMQ_MESH_DISCOVERY_TYPE:-dns}"
 
   if [ -n "${serviceName}" ] ; then
-    networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61617/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
+    networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61617/?transportType=ssl\" messageTTL=\"-1\" consumerTTL=\"1\" />"
     sed -i "s|<!-- ##### MESH_CONFIG ##### -->|${networkConnector}|" "$CONFIG_FILE"
   fi
 }
@@ -169,28 +169,16 @@ function configureTransportOptions() {
     for transport in ${transports[@]}; do
       case "${transport}" in
         "openwire")
-          transportConnectors="${transportConnectors}\n            <transportConnector name=\"openwire\" uri=\"tcp://0.0.0.0:61616?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          if sslEnabled ; then
-            transportConnectors="${transportConnectors}\n            <transportConnector name=\"ssl\" uri=\"ssl://0.0.0.0:61617?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          fi
+          transportConnectors="${transportConnectors}\n            <transportConnector name=\"ssl\" uri=\"ssl://0.0.0.0:61617?transport.needClientAuth=true\&amp;maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
           ;;
         "mqtt")
-          transportConnectors="${transportConnectors}\n            <transportConnector name=\"mqtt\" uri=\"mqtt://0.0.0.0:1883?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          if sslEnabled ; then
-            transportConnectors="${transportConnectors}\n            <transportConnector name=\"mqtt+ssl\" uri=\"mqtt+ssl://0.0.0.0:8883?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          fi
+          transportConnectors="${transportConnectors}\n            <transportConnector name=\"mqtt+ssl\" uri=\"mqtt+ssl://0.0.0.0:8883?transport.needClientAuth=true\&amp;maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
           ;;
         "amqp")
-          transportConnectors="${transportConnectors}\n            <transportConnector name=\"amqp\" uri=\"amqp://0.0.0.0:5672?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          if sslEnabled ; then
-            transportConnectors="${transportConnectors}\n            <transportConnector name=\"amqp+ssl\" uri=\"amqp+ssl://0.0.0.0:5671?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          fi
+          transportConnectors="${transportConnectors}\n            <transportConnector name=\"amqp+ssl\" uri=\"amqp+ssl://0.0.0.0:5671?transport.needClientAuth=true\&amp;maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
           ;;
         "stomp")
-          transportConnectors="${transportConnectors}\n            <transportConnector name=\"stomp\" uri=\"stomp://0.0.0.0:61613?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          if sslEnabled ; then
-            transportConnectors="${transportConnectors}\n            <transportConnector name=\"stomp+ssl\" uri=\"stomp+ssl://0.0.0.0:61612?maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
-          fi
+          transportConnectors="${transportConnectors}\n            <transportConnector name=\"stomp+ssl\" uri=\"stomp+ssl://0.0.0.0:61612?transport.needClientAuth=true\&amp;maximumConnections=${maxConnections}\&amp;wireFormat.maxFrameSize=${maxFrameSize}\" />"
           ;;
       esac
     done
