@@ -1,0 +1,25 @@
+RULE ActiveMQ operation invoked
+CLASS com.sun.jmx.mbeanserver.JmxMBeanServer
+METHOD invoke
+BIND
+  objectName:ObjectName = $1;
+  operationName:String = $2;
+  params:Object[] = $3;
+  signature:String[] = $4;
+  domain:String = objectName.getDomain();
+AT ENTRY
+IF true
+DO traceln("AUDIT | " + objectName + " | " + operationName + " | params: " + java.util.Arrays.toString(params) + " | signature: " + java.util.Arrays.toString(signature));
+ENDRULE
+
+RULE ActiveMQ audit invoked
+CLASS org.apache.activemq.broker.util.DefaultAuditLog
+METHOD log
+BIND
+  logEntry:AuditLogEntry = $1;
+AT ENTRY
+IF true
+DO traceln("AUDIT | " + logEntry.getUser());
+ENDRULE
+
+
