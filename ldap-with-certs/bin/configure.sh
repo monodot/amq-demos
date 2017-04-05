@@ -45,35 +45,21 @@ function checkViewEndpointsPermission() {
 
 function configureMesh() {
   serviceName="${AMQ_MESH_SERVICE_NAME}"
-  username="${AMQ_USER}"
-  password="${AMQ_PASSWORD}"
   discoveryType="${AMQ_MESH_DISCOVERY_TYPE:-dns}"
 
   if [ -n "${serviceName}" ] ; then
-    networkConnector=""
-    if [ -n "${username}" -a -n "${password}" ] ; then
-      networkConnector="<networkConnector userName=\"${username}\" password=\"${password}\" uri=\"${discoveryType}://${serviceName}:61616/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
-    else
-      networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61616/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
-    fi
+    networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61616/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
     sed -i "s|<!-- ##### MESH_CONFIG ##### -->|${networkConnector}|" "$CONFIG_FILE"
   fi
 }
 
 function configureAuthentication() {
-  username="${AMQ_USER}"
-  password="${AMQ_PASSWORD}"
-
   ldap_host="${LDAP_HOST}"
   ldap_user="${LDAP_USER}"
   ldap_password="${LDAP_PASSWORD}"
   
-  if [ -n "${username}" -a -n "${password}" ] ; then
-    sed -i "s|##### AUTHENTICATION #####|${username}=${password}|" "${USERS_FILE}"
-    authentication="<jaasAuthenticationPlugin configuration=\"activemq\" />"
-  elif [ -n "${ldap_host}" -a -n "${ldap_user}" -a -n "${ldap_password}" ]; then
-    ldapConfiguration="LdapConfiguration {\n\
-    org.apache.activemq.jaas.LDAPLoginModule required \n\
+  ldapConfiguration="LdapConfiguration {\n\
+  org.apache.activemq.jaas.LDAPLoginModule sufficient \n\
         debug=true \n\
         initialContextFactory=com.sun.jndi.ldap.LdapCtxFactory \n\
         connectionURL=\"ldap://${ldap_host}:389\" \n\
@@ -90,7 +76,12 @@ function configureAuthentication() {
         roleSearchMatching=\"(member:=uid={1})\" \n\
         roleSearchSubtree=true \n\
         ;\n\
-    };\n\
+  org.apache.activemq.jaas.TextFileCertificateLoginModule required \n\
+        debug=true \n\
+        org.apache.activemq.jaas.textfiledn.user=\"${USERS_FILE}\" \n\
+        org.apache.activemq.jaas.textfiledn.group=\"groups.properties\" \n\
+        ;\n\
+};\n\
 LdapJmxConfiguration { \n\
     com.sun.security.auth.module.LdapLoginModule REQUIRED \n\
         userProvider=\"ldap://${ldap_host}:389/dc=activemq,dc=apache,dc=org\" \n\
@@ -100,29 +91,13 @@ LdapJmxConfiguration { \n\
         useSSL=false \n\
         debug=true \n\
         ;\n\
-    };"
-    #sed -i "s|##### LDAP_CONFIG #####|${ldapConfiguration}|" "$LOGIN_FILE"
-    sed -i "s|\/\* ##### LDAP_CONFIG ##### \*\/|${ldapConfiguration}|" "$LOGIN_FILE"
-    authentication="<jaasAuthenticationPlugin configuration=\"LdapConfiguration\" />"
-#	    <!--
-#            <authorizationPlugin>\n\
-#              <map>\n\
-#                <cachedLDAPAuthorizationMap\n\
-#                    connectionURL=\"ldap://${ldap_host}:389\"\n\
-#                    connectionUsername=\"${ldap_user}\"\n\
-#                    connectionPassword=\"${ldap_password}\"\n\
-#                    queueSearchBase=\"ou=Queue,ou=Destination,ou=ActiveMQ,dc=activemq,dc=apache,dc=org\"\n\
-#                    topicSearchBase=\"ou=Topic,ou=Destination,ou=ActiveMQ,dc=activemq,dc=apache,dc=org\"\n\
-#                    tempSearchBase=\"ou=Temp,ou=Destination,ou=ActiveMQ,dc=activemq,dc=apache,dc=org\"\n\
-#                    refreshInterval=\"300000\"\n\
-#                    legacyGroupMapping=\"false\"\n\
-#                />\n\
-#             </map>\n\
-#            </authorizationPlugin>-->"
-  else
-    authentication="<jaasAuthenticationPlugin configuration=\"activemq-guest\" />"
-  fi
+};"
+  sed -i "s|\/\* ##### LDAP_CONFIG ##### \*\/|${ldapConfiguration}|" "$LOGIN_FILE"
+
+  authentication="<jaasAuthenticationPlugin configuration=\"LdapConfiguration\" />"
   sed -i "s|<!-- ##### AUTHENTICATION ##### -->|${authentication}|" "$CONFIG_FILE"
+
+  # TODO add entries into users.properties for each broker, based on param given in template
 }
 
 function configureDestinations() {
