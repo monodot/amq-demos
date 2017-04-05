@@ -1,12 +1,12 @@
 # amq62-ssl-ldap
 
-Demonstrates a few security customisations of the [JBoss A-MQ for OpenShift][1] image:
+Demonstrates a hardened customisation of the [JBoss A-MQ for OpenShift][1] image, using S2I:
 
 - Configure LDAP authentication for the broker in `activemq.xml`
 - Enforce 2-way SSL for client-broker communication
 - Enable a 'remote' JMX port on 1099, to allow local administration via the command line `activemq-admin` tool
 - Configure LDAP authentication for JMX 
-- Configure certificate-based authentication for brokers using `org.apache.activemq.jaas.TextFileCertificateLoginModule`
+- Do not use a named user for broker-to-broker authentication, instead configure certificate-based authentication using `TextFileCertificateLoginModule`
 - Enable only the SSL variants of each protocol
 
 You will need:

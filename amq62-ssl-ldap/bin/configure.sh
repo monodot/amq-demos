@@ -48,7 +48,7 @@ function configureMesh() {
   discoveryType="${AMQ_MESH_DISCOVERY_TYPE:-dns}"
 
   if [ -n "${serviceName}" ] ; then
-    networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61616/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
+    networkConnector="<networkConnector uri=\"${discoveryType}://${serviceName}:61617/?transportType=tcp\" messageTTL=\"-1\" consumerTTL=\"1\" />"
     sed -i "s|<!-- ##### MESH_CONFIG ##### -->|${networkConnector}|" "$CONFIG_FILE"
   fi
 }
